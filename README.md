@@ -14,6 +14,8 @@ This plugin provides Claude Code with knowledge of runok configuration files (`r
 
 ## Installation
 
+### In Claude Code chat
+
 1. Add the marketplace:
 
    ```
@@ -25,6 +27,13 @@ This plugin provides Claude Code with knowledge of runok configuration files (`r
    ```
    /plugin install runok@runok-claude-code-plugin
    ```
+
+### From the CLI
+
+```sh
+claude plugin marketplace add fohte/runok-claude-code-plugin
+claude plugin install runok@runok-claude-code-plugin
+```
 
 ## Usage
 
