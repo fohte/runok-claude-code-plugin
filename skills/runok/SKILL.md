@@ -98,6 +98,8 @@ When the user requests a new rule in natural language:
 | Path ref `<path:name>` | `cat <path:sensitive>`     | Matches against named path list in definitions    |
 | Multi-word alternation | `"npx prettier"\|prettier` | Alternatives containing spaces                    |
 
+**Note**: The `\|` in the table above is a Markdown table escape. In actual runok patterns, use an unescaped `|` for alternation (e.g., `git push|pull|fetch`).
+
 ### Editing Rules
 
 When editing existing rules:
@@ -285,6 +287,10 @@ rules: []
 - **Unresolvable reference**: The file path, GitHub repo, or Git URL cannot be accessed. Check the path/URL and network connectivity
 - **Circular dependency**: An extends chain references a config that has already been loaded. Remove the circular reference
 - **Depth limit exceeded**: The extends chain is deeper than 10 levels. Flatten the hierarchy
+
+### Security Note
+
+When reporting errors for files referenced via `extends`, **never include the raw file content** in error messages. Only report the file path and the nature of the error (e.g., "YAML parse error at line 5"). An `extends` entry could point to arbitrary local files, and displaying their content would risk exposing sensitive data.
 
 ### Resolution Strategy
 
