@@ -38,6 +38,8 @@ runok uses a 4-layer configuration system. Search for config files in this order
 
 **Discovery procedure**:
 
+Use `ls` (via Bash tool) to check for files. Do not use Glob for discovery.
+
 1. Check for project-level files first: `./runok.yml` (or `./runok.yaml`), then `./runok.local.yml` (or `./runok.local.yaml`)
 2. Check for global files: `~/.config/runok/runok.yml` (or `.yaml`), then `~/.config/runok/runok.local.yml` (or `.yaml`)
 3. If `$XDG_CONFIG_HOME` is set, use `$XDG_CONFIG_HOME/runok/` instead of `~/.config/runok/`
