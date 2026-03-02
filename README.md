@@ -30,10 +30,17 @@ This plugin provides Claude Code with knowledge of runok configuration files (`r
 
 ### From the CLI
 
-```sh
-claude plugin marketplace add fohte/runok-claude-code-plugin
-claude plugin install runok@runok-claude-code-plugin
-```
+1. Add the marketplace:
+
+   ```sh
+   claude plugin marketplace add fohte/runok-claude-code-plugin
+   ```
+
+2. Install the plugin:
+
+   ```sh
+   claude plugin install runok@runok-claude-code-plugin
+   ```
 
 ## Usage
 
