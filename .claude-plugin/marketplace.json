@@ -3,7 +3,7 @@
   "name": "runok-claude-code-plugin",
   "description": "Claude Code plugin for runok - command execution permission framework for LLM agents",
   "owner": {
-    "name": "fohte"
+    "name": "Hayato Kawai"
   },
   "plugins": [
     {
