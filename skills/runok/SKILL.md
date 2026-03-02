@@ -25,12 +25,12 @@ Always refer to these docs for the latest syntax, schema, and examples.
 
 runok uses a 4-layer configuration system. Search for config files in this order:
 
-| Priority | Scope | Path | Purpose |
-|----------|-------|------|---------|
-| 1 (lowest) | Global | `~/.config/runok/runok.yml` | User-wide defaults |
-| 2 | Global override | `~/.config/runok/runok.local.yml` | Personal adjustments |
-| 3 | Project | `./runok.yml` | Project-specific rules |
-| 4 (highest) | Project override | `./runok.local.yml` | Personal project overrides |
+| Priority    | Scope            | Path                              | Purpose                    |
+| ----------- | ---------------- | --------------------------------- | -------------------------- |
+| 1 (lowest)  | Global           | `~/.config/runok/runok.yml`       | User-wide defaults         |
+| 2           | Global override  | `~/.config/runok/runok.local.yml` | Personal adjustments       |
+| 3           | Project          | `./runok.yml`                     | Project-specific rules     |
+| 4 (highest) | Project override | `./runok.local.yml`               | Personal project overrides |
 
 **Extension fallback**: If `.yml` is not found, check for `.yaml` extension at the same path.
 
@@ -46,19 +46,20 @@ runok uses a 4-layer configuration system. Search for config files in this order
 ## Configuration Schema Overview
 
 ```yaml
-extends: []           # list[str] - inherited config references
+extends: [] # list[str] - inherited config references
 defaults:
-  action: ask         # "allow" | "ask" | "deny" - when no rule matches
-  sandbox: null       # str - default sandbox preset name
+  action: ask # "allow" | "ask" | "deny" - when no rule matches
+  sandbox: null # str - default sandbox preset name
 definitions:
-  paths: {}           # map[str, list[str]] - named path lists
-  sandbox: {}         # map[str, SandboxPreset] - sandbox presets
-  wrappers: []        # list[str] - wrapper patterns (e.g., 'sudo <cmd>')
-  commands: []        # list[str] - additional command patterns
-rules: []             # list[RuleEntry] - ordered rules (top to bottom)
+  paths: {} # map[str, list[str]] - named path lists
+  sandbox: {} # map[str, SandboxPreset] - sandbox presets
+  wrappers: [] # list[str] - wrapper patterns (e.g., 'sudo <cmd>')
+  commands: [] # list[str] - additional command patterns
+rules: [] # list[RuleEntry] - ordered rules (top to bottom)
 ```
 
 **Rule entry fields**:
+
 - One of `allow`, `deny`, or `ask` (required, mutually exclusive) - the command pattern
 - `when` (optional) - CEL expression for conditional rules
 - `message` (optional) - message shown when the rule matches
@@ -80,20 +81,20 @@ When the user requests a new rule in natural language:
 
 ### Pattern Syntax Reference
 
-| Syntax | Example | Description |
-|--------|---------|-------------|
-| Literal | `git status` | Exact match |
-| Wildcard `*` | `git *` | Matches 0+ tokens |
-| Glob | `*.txt`, `list-*` | `*` inside a literal matches 0+ characters |
-| Alternation | `push\|pull\|fetch` | Pipe-separated alternatives |
-| Negation | `!--force` | Matches anything except the specified value |
-| Optional group | `[-f]`, `[-X POST]` | Matches with or without the group |
-| Quoted literal | `"WIP*"` | Literal match without glob expansion |
-| Placeholder `<cmd>` | `sudo <cmd>` | Captures wrapped command for recursive evaluation |
-| Placeholder `<opts>` | `env <opts> <cmd>` | Absorbs 0+ flag-like tokens |
-| Placeholder `<vars>` | `env <vars> <cmd>` | Absorbs 0+ KEY=VALUE tokens |
-| Path ref `<path:name>` | `cat <path:sensitive>` | Matches against named path list in definitions |
-| Multi-word alternation | `"npx prettier"\|prettier` | Alternatives containing spaces |
+| Syntax                 | Example                    | Description                                       |
+| ---------------------- | -------------------------- | ------------------------------------------------- |
+| Literal                | `git status`               | Exact match                                       |
+| Wildcard `*`           | `git *`                    | Matches 0+ tokens                                 |
+| Glob                   | `*.txt`, `list-*`          | `*` inside a literal matches 0+ characters        |
+| Alternation            | `push\|pull\|fetch`        | Pipe-separated alternatives                       |
+| Negation               | `!--force`                 | Matches anything except the specified value       |
+| Optional group         | `[-f]`, `[-X POST]`        | Matches with or without the group                 |
+| Quoted literal         | `"WIP*"`                   | Literal match without glob expansion              |
+| Placeholder `<cmd>`    | `sudo <cmd>`               | Captures wrapped command for recursive evaluation |
+| Placeholder `<opts>`   | `env <opts> <cmd>`         | Absorbs 0+ flag-like tokens                       |
+| Placeholder `<vars>`   | `env <vars> <cmd>`         | Absorbs 0+ KEY=VALUE tokens                       |
+| Path ref `<path:name>` | `cat <path:sensitive>`     | Matches against named path list in definitions    |
+| Multi-word alternation | `"npx prettier"\|prettier` | Alternatives containing spaces                    |
 
 ### Editing Rules
 
@@ -117,6 +118,7 @@ When removing rules:
 The `when` field uses CEL (Common Expression Language) expressions:
 
 **Available context variables**:
+
 - `env` (map) - Environment variables. Example: `env.CI == 'true'`
 - `flags` (map) - Parsed flags (leading dashes removed). Example: `flags.request == 'POST'`
 - `args` (list) - Positional arguments. Example: `args[0] == 'production'`
@@ -125,11 +127,12 @@ The `when` field uses CEL (Common Expression Language) expressions:
 **Supported operators**: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, `in`, `size()`, `.startsWith()`, `.endsWith()`, `.contains()`
 
 Example:
+
 ```yaml
 - deny: 'curl -X|--request * *'
   when: "flags.request == 'POST' && args[0].startsWith('https://prod.')"
-  message: "Direct POST to production API is not allowed."
-  fix_suggestion: "Use the staging endpoint instead."
+  message: 'Direct POST to production API is not allowed.'
+  fix_suggestion: 'Use the staging endpoint instead.'
 ```
 
 ## Definitions Management
@@ -209,11 +212,11 @@ The `extends` field inherits rules from external configurations:
 
 ### Reference Formats
 
-| Format | Syntax | Example |
-|--------|--------|---------|
-| Local path | Relative or absolute | `./shared/base.yml`, `~/company/runok-base.yml` |
-| GitHub shorthand | `github:<owner>/<repo>@<ref>` | `github:example-org/presets@v1.0.0` |
-| Git URL | HTTPS/SSH + optional `@<ref>` | `https://github.com/org/config.git@v2.0.0` |
+| Format           | Syntax                        | Example                                         |
+| ---------------- | ----------------------------- | ----------------------------------------------- |
+| Local path       | Relative or absolute          | `./shared/base.yml`, `~/company/runok-base.yml` |
+| GitHub shorthand | `github:<owner>/<repo>@<ref>` | `github:example-org/presets@v1.0.0`             |
+| Git URL          | HTTPS/SSH + optional `@<ref>` | `https://github.com/org/config.git@v2.0.0`      |
 
 - `@<ref>` accepts tags, branch names, or 40-character commit SHAs
 - **When `@<ref>` is omitted** in GitHub shorthand, recommend pinning to a specific version for reproducibility
