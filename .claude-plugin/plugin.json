@@ -1,0 +1,17 @@
+{
+  "name": "runok",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for runok - command execution permission framework for LLM agents",
+  "author": {
+    "name": "fohte"
+  },
+  "repository": "https://github.com/fohte/runok-claude-code-plugin",
+  "license": "MIT",
+  "keywords": [
+    "runok",
+    "security",
+    "command-allowlisting",
+    "sandbox",
+    "permissions"
+  ]
+}
