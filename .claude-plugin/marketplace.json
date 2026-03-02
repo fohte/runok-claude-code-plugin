@@ -1,6 +1,10 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "runok-claude-code-plugin",
   "description": "Claude Code plugin for runok - command execution permission framework for LLM agents",
+  "owner": {
+    "name": "fohte"
+  },
   "plugins": [
     {
       "name": "runok",
