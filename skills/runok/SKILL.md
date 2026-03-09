@@ -309,11 +309,11 @@ When a command is unexpectedly allowed, denied, or asked, follow this procedure 
    - Check with `runok check --verbose` after each change
    - Repeat until you find the single element that changes the result
 
-   Example: if `gh pr edit 10 --body "$(echo test)"` is unexpectedly allowed:
+   Example: if `gh pr edit 10 --body test` is unexpectedly allowed:
 
    ```bash
    # Full command
-   runok check --verbose -- gh pr edit 10 --body '$(echo test)'
+   runok check --verbose -- gh pr edit 10 --body test
    # Remove --body argument
    runok check --verbose -- gh pr edit 10
    # Try different subcommand
