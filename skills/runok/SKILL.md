@@ -281,6 +281,14 @@ When a command is unexpectedly allowed, denied, or asked, follow this procedure 
    runok check --verbose -- <the-exact-command>
    ```
 
+   Alternatively, pipe the command via stdin to avoid shell escaping issues:
+
+   ```bash
+   echo '<the-exact-command>' | runok check --verbose
+   ```
+
+   Choose whichever form makes escaping simpler for the command at hand.
+
    Read the output carefully. It shows which rules were evaluated, which matched, and the final action.
 
 2. **Compare with a known-good case**
