@@ -261,6 +261,70 @@ rules: []
 
 5. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
 
+## Debugging runok Behavior
+
+When a command is unexpectedly allowed, denied, or asked, follow this procedure **strictly**. Do not speculate about the cause based on config file reading alone.
+
+### Principles
+
+- **Never guess the cause.** Always verify with `runok check --verbose` before stating why a command was allowed/denied.
+- **Evidence first.** Every claim about runok's behavior must be backed by actual `runok check` output.
+- **Minimal reproduction.** Narrow down the problem to the smallest command that reproduces the unexpected behavior.
+
+### Debugging Workflow
+
+1. **Reproduce with `runok check --verbose`**
+
+   Run the exact command that exhibited unexpected behavior:
+
+   ```bash
+   runok check --verbose -- <the-exact-command>
+   ```
+
+   Read the output carefully. It shows which rules were evaluated, which matched, and the final action.
+
+2. **Compare with a known-good case**
+
+   Test a similar command that you expect to produce the correct result:
+
+   ```bash
+   runok check --verbose -- <similar-command-expected-to-differ>
+   ```
+
+   Comparing the two outputs reveals which rule or pattern causes the divergence.
+
+3. **Binary search for the triggering element**
+
+   If the command is complex (many arguments, flags, subshells, etc.), systematically remove parts to find the minimal command that still triggers the unexpected behavior:
+   - Start with the full command
+   - Remove roughly half of the arguments/flags
+   - Check with `runok check --verbose` after each change
+   - Repeat until you find the single element that changes the result
+
+   Example: if `gh pr edit 10 --body "$(echo test)"` is unexpectedly allowed:
+
+   ```bash
+   # Full command
+   runok check --verbose -- gh pr edit 10 --body '$(echo test)'
+   # Remove --body argument
+   runok check --verbose -- gh pr edit 10
+   # Try different subcommand
+   runok check --verbose -- gh pr edit
+   ```
+
+4. **State findings with evidence**
+
+   Only after completing the above steps, report:
+   - The exact `runok check --verbose` output that demonstrates the issue
+   - The minimal command that reproduces the problem
+   - Which rule matched (or didn't match) and why
+
+### Common Pitfalls
+
+- **Do not** read `runok.yml` and guess which rule matches. Pattern matching has subtleties (wildcards, wrappers, alternation) that are not obvious from reading config alone.
+- **Do not** skip the `--verbose` flag. Without it, you only see the final action, not the rule evaluation trace.
+- **Do not** report a root cause without first finding a minimal reproduction.
+
 ## Error Handling
 
 ### Config File Errors
