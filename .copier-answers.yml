@@ -1,11 +1,13 @@
 # Changes here will be overwritten by Copier
 _commit: v0.3.14
 _src_path: https://github.com/fohte/generic-boilerplate
+auto_merge_release_pr: false
 description:
   Claude Code plugin for runok - command execution permission framework
   for LLM agents
 is_public: true
 project_name: runok-claude-code-plugin
+release_type: simple
 subpackages: []
 type: base
-use_release_please: false
+use_release_please: true
