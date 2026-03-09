@@ -261,7 +261,7 @@ rules: []
 
 5. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
 
-## Debugging runok Behavior
+## Investigating Unexpected Rule Matches
 
 When a command is unexpectedly allowed, denied, or asked, follow this procedure **strictly**. Do not speculate about the cause based on config file reading alone.
 
@@ -271,7 +271,7 @@ When a command is unexpectedly allowed, denied, or asked, follow this procedure 
 - **Evidence first.** Every claim about runok's behavior must be backed by actual `runok check` output.
 - **Minimal reproduction.** Narrow down the problem to the smallest command that reproduces the unexpected behavior.
 
-### Debugging Workflow
+### Investigation Workflow
 
 1. **Reproduce with `runok check --verbose`**
 
