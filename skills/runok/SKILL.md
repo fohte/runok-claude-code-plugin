@@ -258,7 +258,7 @@ When no runok configuration file exists:
 rules: []
 ```
 
-**Important**: The first line must always be the `# yaml-language-server: $schema=...` comment. This enables schema validation in editors that support yaml-language-server. When editing an existing runok.yml that lacks this comment, add it as the first line.
+**Important**: The first line must always be the `# yaml-language-server: $schema=...` comment. This enables schema validation in editors that support yaml-language-server. When editing an existing runok.yml or runok.yaml that lacks this comment, add it as the first line.
 
 5. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
 
