@@ -250,14 +250,15 @@ When no runok configuration file exists:
    - Global: `~/.config/runok/runok.yml` (applies to all projects)
    - Project: `./runok.yml` (project-specific)
 3. **If the target file already exists**, warn the user and ask for confirmation before overwriting
-4. **Generate initial configuration** with `defaults.action: ask` as the base:
+4. **Generate initial configuration** with the following template:
 
 ```yaml
-defaults:
-  action: ask
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fohte/runok/main/schema/runok.schema.json
 
 rules: []
 ```
+
+**Important**: The first line must always be the `# yaml-language-server: $schema=...` comment. This enables schema validation in editors that support yaml-language-server. When editing an existing runok.yml that lacks this comment, add it as the first line.
 
 5. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
 
