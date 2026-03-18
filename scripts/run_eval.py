@@ -78,7 +78,6 @@ def find_project_root() -> Path:
 def run_single_query(
     query: str,
     skill_name: str,
-    skill_description: str,
     timeout: int,
     project_root: str,
     model: str | None = None,
@@ -245,7 +244,6 @@ def run_single_query(
 def run_eval(
     eval_set: list[dict],
     skill_name: str,
-    description: str,
     num_workers: int,
     timeout: int,
     project_root: Path,
@@ -265,7 +263,6 @@ def run_eval(
                     run_single_query,
                     item["query"],
                     skill_name,
-                    description,
                     timeout,
                     str(project_root),
                     model,
@@ -309,7 +306,6 @@ def run_eval(
 
     return {
         "skill_name": skill_name,
-        "description": description,
         "results": results,
         "summary": {
             "total": total,
@@ -323,7 +319,6 @@ def main():
     parser = argparse.ArgumentParser(description="Run trigger evaluation for a skill description")
     parser.add_argument("--eval-set", required=True, help="Path to eval set JSON file")
     parser.add_argument("--skill-path", required=True, help="Path to skill directory")
-    parser.add_argument("--description", default=None, help="Override description to test")
     parser.add_argument("--num-workers", type=int, default=10, help="Number of parallel workers")
     parser.add_argument("--timeout", type=int, default=30, help="Timeout per query in seconds")
     parser.add_argument("--runs-per-query", type=int, default=3, help="Number of runs per query")
@@ -339,17 +334,15 @@ def main():
         print(f"Error: No SKILL.md found at {skill_path}", file=sys.stderr)
         sys.exit(1)
 
-    name, original_description, content = parse_skill_md(skill_path)
-    description = args.description or original_description
+    name, _, _ = parse_skill_md(skill_path)
     project_root = find_project_root()
 
     if args.verbose:
-        print(f"Evaluating: {description}", file=sys.stderr)
+        print(f"Evaluating skill: {name}", file=sys.stderr)
 
     output = run_eval(
         eval_set=eval_set,
         skill_name=name,
-        description=description,
         num_workers=args.num_workers,
         timeout=args.timeout,
         project_root=project_root,
