@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.2...v0.1.3) (2026-03-18)
+
+
+### Bug Fixes
+
+* **skill/runok:** add trigger keywords to runok skill `description` ([#13](https://github.com/fohte/runok-claude-code-plugin/issues/13)) ([2b6b7f5](https://github.com/fohte/runok-claude-code-plugin/commit/2b6b7f535606dbb1373f95eda3605eebdd37fa4b))
+
 ## [0.1.2](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.1...v0.1.2) (2026-03-13)
 
 
