@@ -1,11 +1,17 @@
 ---
 name: runok
 description: >-
-  Manage runok configuration files (runok.yml) for command execution permissions.
-  Use when the user asks about runok rules, command allowlisting, sandbox configuration,
-  or when you encounter runok.yml / runok.local.yml files.
-  Triggers on: runok CLI usage, runok.yml editing, command permission setup,
-  sandbox configuration, or when the user mentions "runok".
+  runok: Manage runok configuration files (runok.yml) for command execution permissions.
+  Use this skill whenever the user mentions "runok", asks about runok rules, runok.yml,
+  runok.local.yml, or runok CLI commands (runok check, runok run). Also trigger when
+  the user wants to: add/edit/delete allow/deny/ask rules for commands, set up sandbox
+  presets for filesystem or network isolation, configure command patterns with wildcards
+  or alternation, write CEL when-clauses for conditional rules, use extends to inherit
+  shared configs, initialize a new runok.yml, investigate why a command was allowed or
+  denied, or understand how runok pattern matching works. This skill MUST be used for
+  any question about runok — including "what is runok", "how does runok work", debugging
+  unexpected rule matches, and editing any runok configuration file. If you see runok.yml
+  or runok.local.yml in the project, use this skill to understand and modify them.
 ---
 
 # runok Configuration Management
