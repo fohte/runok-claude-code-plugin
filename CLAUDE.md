@@ -8,7 +8,7 @@ When modifying `skills/runok/SKILL.md`'s `description` field, verify trigger acc
 
 ### Eval Set
 
-- Location: `runok-workspace/eval_set.json`
+- Location: `test/eval_set.json`
 - Format: array of `{ "query": string, "should_trigger": boolean }`
 - Current baseline: **19/20** (recall 90%, precision 100%)
 
