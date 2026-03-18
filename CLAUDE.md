@@ -12,6 +12,14 @@ When modifying `skills/runok/SKILL.md`'s `description` field, verify trigger acc
 - Format: array of `{ "query": string, "should_trigger": boolean }`
 - Current baseline: **19/20** (recall 90%, precision 100%)
 
+### Full Eval Run
+
+```bash
+python scripts/run_eval.py \
+  --eval-set test/eval_set.json --skill-path skills/runok \
+  --model claude-opus-4-6 --runs-per-query 1 --num-workers 3 --verbose
+```
+
 ### Manual Single-Query Test
 
 Run the following command to test whether a specific query triggers the runok skill:
