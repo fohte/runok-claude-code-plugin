@@ -1,0 +1,82 @@
+[
+  {
+    "query": "Add allow rules for npm install and npm test to runok.yml. Write them in the project root config file.",
+    "should_trigger": true
+  },
+  {
+    "query": "I ran gh pr create but it got denied. Can you investigate why it was blocked? I also want to see the output of runok check --verbose.",
+    "should_trigger": true
+  },
+  {
+    "query": "What is runok? How does it manage command execution permissions?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to create a sandbox preset in runok.yml that only allows writes to ./src and blocks network access.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to write a rule to deny git push --force, and have fix_suggestion propose git push --force-with-lease instead.",
+    "should_trigger": true
+  },
+  {
+    "query": "There's no runok config file in this project. Set up the initial configuration and allow basic git commands.",
+    "should_trigger": true
+  },
+  {
+    "query": "My runok.yml uses extends to reference github:our-org/shared-config@v2.0.0, but I'm not sure whether local rules or the extended config takes priority.",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I write a when clause in runok.yml that only allows a command in CI environments? Should I use env.CI?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to allow curling the staging API but deny POST requests to the production API. How do I write the pattern?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the difference between runok.local.yml and runok.yml? When should I use each?",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to integrate ESLint with Prettier. How should I modify .eslintrc.json?",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a permission to Claude Code's settings.json to auto-allow npm run build.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix the docker-compose.yml service definition and change the port mapping to 8080:3000.",
+    "should_trigger": false
+  },
+  {
+    "query": "npm test is failing in the GitHub Actions workflow. Can you look at the CI yaml file?",
+    "should_trigger": false
+  },
+  {
+    "query": "Enable strict mode in tsconfig.json and fix the existing type errors.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a new target to the Makefile that runs both lint and test together.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add node_modules and dist to the .gitignore in this repository.",
+    "should_trigger": false
+  },
+  {
+    "query": "Disable automerge for major version updates in renovate.json5.",
+    "should_trigger": false
+  },
+  {
+    "query": "The shell script uses sudo. How can I run it without a password? I want to change the sudoers config.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a pre-commit hook to package.json scripts that runs lint-staged via husky.",
+    "should_trigger": false
+  }
+]
