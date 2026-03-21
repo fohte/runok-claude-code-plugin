@@ -116,7 +116,11 @@ def run_single_query(
         # Remove CLAUDECODE env var to allow nesting claude -p inside a
         # Claude Code session. The guard is for interactive terminal conflicts;
         # programmatic subprocess usage is safe.
-        env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+        # Set CLAUDE_CODE_SIMPLE=1 to disable hooks, MCP servers, and
+        # CLAUDE.md so the eval subprocess runs in a clean environment.
+        env = os.environ.copy()
+        env.pop("CLAUDECODE", None)
+        env["CLAUDE_CODE_SIMPLE"] = "1"
 
         process = subprocess.Popen(
             cmd,
