@@ -398,7 +398,7 @@ runok audit [--action allow|deny|ask] [--since <timespec>] [--until <timespec>] 
 
 ### `runok update-presets`
 
-Force-update remote presets, bypassing TTL cache. Automatically upgrades version tags based on tag precision (`@v1` → major, `@v1.0` → minor, `@v1.0.0` → patch within major).
+Force-update remote presets, bypassing TTL cache. Automatically upgrades version tags based on tag precision (`@v1` → latest major, `@v1.0` → latest minor within same major, `@v1.0.0` → latest stable within same major).
 
 ## Configuration Initialization
 
