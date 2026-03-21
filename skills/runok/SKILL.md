@@ -3,15 +3,17 @@ name: runok
 description: >-
   runok: Manage runok configuration files (runok.yml) for command execution permissions.
   Use this skill whenever the user mentions "runok", asks about runok rules, runok.yml,
-  runok.local.yml, or runok CLI commands (runok check, runok run). Also trigger when
-  the user wants to: add/edit/delete allow/deny/ask rules for commands, set up sandbox
-  presets for filesystem or network isolation, configure command patterns with wildcards
-  or alternation, write CEL when-clauses for conditional rules, use extends to inherit
-  shared configs, initialize a new runok.yml, investigate why a command was allowed or
-  denied, or understand how runok pattern matching works. This skill MUST be used for
-  any question about runok — including "what is runok", "how does runok work", debugging
-  unexpected rule matches, and editing any runok configuration file. If you see runok.yml
-  or runok.local.yml in the project, use this skill to understand and modify them.
+  runok.local.yml, or runok CLI commands (runok check, runok exec, runok init, runok test,
+  runok audit, runok update-presets). Also trigger when the user wants to: add/edit/delete
+  allow/deny/ask rules for commands, set up sandbox presets for filesystem or network
+  isolation, configure command patterns with wildcards or alternation, write CEL when-clauses
+  for conditional rules, use extends to inherit shared configs, use official presets
+  (runok-presets), write inline tests for rules (runok test), view audit logs, initialize
+  a new runok.yml, investigate why a command was allowed or denied, or understand how runok
+  pattern matching works. This skill MUST be used for any question about runok — including
+  "what is runok", "how does runok work", debugging unexpected rule matches, and editing
+  any runok configuration file. If you see runok.yml or runok.local.yml in the project,
+  use this skill to understand and modify them.
 ---
 
 # runok Configuration Management
@@ -60,10 +62,18 @@ defaults:
   sandbox: null # str - default sandbox preset name
 definitions:
   paths: {} # map[str, list[str]] - named path lists
+  vars: {} # map[str, VarDefinition] - typed variable definitions
   sandbox: {} # map[str, SandboxPreset] - sandbox presets
   wrappers: [] # list[str] - wrapper patterns (e.g., 'sudo <cmd>')
-  commands: [] # list[str] - additional command patterns
-rules: [] # list[RuleEntry] - ordered rules (top to bottom)
+rules: [] # list[RuleEntry] - rules (evaluated via Explicit Deny Wins)
+audit: # audit log settings (global config only)
+  enabled: true # bool
+  path: null # str - log directory
+  rotation:
+    retention_days: 7 # int
+tests: # test cases for `runok test`
+  extends: [] # list[str] - test-only config
+  cases: [] # list[TestEntry]
 ```
 
 **Rule entry fields**:
@@ -73,6 +83,19 @@ rules: [] # list[RuleEntry] - ordered rules (top to bottom)
 - `message` (optional) - message shown when the rule matches
 - `fix_suggestion` (optional) - alternative command suggestion (for `deny` rules)
 - `sandbox` (optional) - sandbox preset name (cannot be used with `deny`)
+- `tests` (optional) - inline test cases for this rule (used by `runok test`)
+
+## Rule Priority Model: Explicit Deny Wins
+
+When multiple rules match a command, the **most restrictive** action wins:
+
+| Priority    | Action  | Meaning                          |
+| ----------- | ------- | -------------------------------- |
+| 2 (highest) | `deny`  | Block the command                |
+| 1           | `ask`   | Prompt the user for confirmation |
+| 0           | `allow` | Permit the command               |
+
+Rule order in the config file does **not** affect priority. A `deny` rule always wins, even if an `allow` rule appears later. This is inspired by AWS IAM's Explicit Deny model.
 
 ## Rule Management
 
@@ -89,22 +112,32 @@ When the user requests a new rule in natural language:
 
 ### Pattern Syntax Reference
 
-| Syntax                 | Example                    | Description                                       |
-| ---------------------- | -------------------------- | ------------------------------------------------- |
-| Literal                | `git status`               | Exact match                                       |
-| Wildcard `*`           | `git *`                    | Matches 0+ tokens                                 |
-| Glob                   | `*.txt`, `list-*`          | `*` inside a literal matches 0+ characters        |
-| Alternation            | `push\|pull\|fetch`        | Pipe-separated alternatives                       |
-| Negation               | `!--force`                 | Matches anything except the specified value       |
-| Optional group         | `[-f]`, `[-X POST]`        | Matches with or without the group                 |
-| Quoted literal         | `"WIP*"`                   | Literal match without glob expansion              |
-| Placeholder `<cmd>`    | `sudo <cmd>`               | Captures wrapped command for recursive evaluation |
-| Placeholder `<opts>`   | `env <opts> <cmd>`         | Absorbs 0+ flag-like tokens                       |
-| Placeholder `<vars>`   | `env <vars> <cmd>`         | Absorbs 0+ KEY=VALUE tokens                       |
-| Path ref `<path:name>` | `cat <path:sensitive>`     | Matches against named path list in definitions    |
-| Multi-word alternation | `"npx prettier"\|prettier` | Alternatives containing spaces                    |
+| Syntax                 | Example                    | Description                                                     |
+| ---------------------- | -------------------------- | --------------------------------------------------------------- |
+| Literal                | `git status`               | Exact match                                                     |
+| Wildcard `*`           | `git *`                    | Matches 0+ tokens                                               |
+| Glob                   | `*.txt`, `list-*`          | `*` inside a literal matches 0+ characters                      |
+| Alternation            | `push\|pull\|fetch`        | Pipe-separated alternatives                                     |
+| Negation               | `!--force`                 | Matches anything except the specified value                     |
+| Optional group         | `[-f]`, `[-X POST]`        | Matches with or without the group                               |
+| Placeholder `<cmd>`    | `sudo <cmd>`               | Captures wrapped command for recursive evaluation               |
+| Placeholder `<opts>`   | `env <opts> <cmd>`         | Absorbs 0+ flag-like tokens                                     |
+| Placeholder `<vars>`   | `env <vars> <cmd>`         | Absorbs 0+ KEY=VALUE tokens                                     |
+| Path ref `<path:name>` | `cat <path:sensitive>`     | Matches against named path list in definitions                  |
+| Var ref `<var:name>`   | `bash <var:test-script>`   | Matches against typed variable definition (arg or cmd position) |
+| Multi-word alternation | `"npx prettier"\|prettier` | Alternatives containing spaces                                  |
 
 **Note**: The `\|` in the table above is a Markdown table escape. In actual runok patterns, use an unescaped `|` for alternation (e.g., `git push|pull|fetch`).
+
+**Quotes and glob**: Quotes (`"..."` or `'...'`) act as grouping only -- they allow spaces inside a single token but do **not** disable glob expansion. `*` inside quotes is treated as a glob. Use `\*` to match a literal `*` character.
+
+**Matching behavior notes**:
+
+- **Order-independent flag matching**: Flags match regardless of their position in the command
+- **`=`-joined flag values**: `-X=POST` and `--request=POST` are supported
+- **Fused short flags**: `-n3` matches patterns like `-n *` (flag and value joined without space)
+- **Combined short flags**: `-am` is not split into individual flags -- matched as a single token
+- **Recursion limit**: 10,000 steps
 
 ### Editing Rules
 
@@ -120,7 +153,7 @@ When editing existing rules:
 When removing rules:
 
 1. Use the **Edit** tool to remove the rule entry
-2. Remove the entire rule block including all its fields (`when`, `message`, `fix_suggestion`, `sandbox`)
+2. Remove the entire rule block including all its fields (`when`, `message`, `fix_suggestion`, `sandbox`, `tests`)
 3. Preserve surrounding formatting and comments
 
 ### Conditional Rules (when clauses)
@@ -133,8 +166,11 @@ The `when` field uses CEL (Common Expression Language) expressions:
 - `flags` (map) - Parsed flags (leading dashes removed). Example: `flags.request == 'POST'`
 - `args` (list) - Positional arguments. Example: `args[0] == 'production'`
 - `paths` (map) - Named path lists from definitions. Example: `size(paths.sensitive) > 0`
+- `redirects` (list) - Redirect operators. Each element has `type` (`"input"`, `"output"`, `"dup"`), `operator` (e.g., `">"`, `">>"`), `target`, and `descriptor`. Example: `redirects.exists(r, r.type == "output")`
+- `pipe` (object) - Pipeline position with `stdin` (bool) and `stdout` (bool) fields. Example: `pipe.stdin` (true if receiving piped input)
+- `vars` (map) - Values captured by `<var:name>` placeholders. Example: `vars['instance-ids'] == 'i-prod-001'`
 
-**Supported operators**: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, `in`, `size()`, `.startsWith()`, `.endsWith()`, `.contains()`
+**Supported operators**: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, `in`, `size()`, `.startsWith()`, `.endsWith()`, `.contains()`, `.exists()`, `.exists_one()`, `has()`
 
 Example:
 
@@ -143,13 +179,17 @@ Example:
   when: "flags.request == 'POST' && args[0].startsWith('https://prod.')"
   message: 'Direct POST to production API is not allowed.'
   fix_suggestion: 'Use the staging endpoint instead.'
+
+# Block piped execution of sh/bash (e.g., curl | sh)
+- deny: 'sh'
+  when: 'pipe.stdin'
 ```
 
 ## Definitions Management
 
 ### paths
 
-Named path lists referenced by `<path:name>` in rule patterns:
+Named path lists referenced by `<path:name>` in rule patterns and sandbox deny lists:
 
 ```yaml
 definitions:
@@ -165,6 +205,34 @@ definitions:
 - Referenced in patterns as `<path:name>` (e.g., `<path:secrets>`)
 - **Validate** that any `<path:name>` in rules resolves to an existing `definitions.paths` entry
 
+### vars
+
+Typed variable definitions referenced by `<var:name>` in rule patterns. Can be used in both argument and command position:
+
+```yaml
+definitions:
+  vars:
+    instance-ids:
+      values:
+        - i-abc123
+        - i-def456
+    test-script:
+      type: path
+      values:
+        - ./tests/run
+    runok:
+      values:
+        - runok
+        - 'cargo run --'
+        - type: path
+          value: target/debug/runok
+```
+
+- `type` (optional, default: `"literal"`) - `"literal"` for exact match, `"path"` for canonicalized path comparison
+- `values` (required) - list of allowed values, each can be a plain string or `{ type, value }` for per-value type override
+- Multi-word values (e.g., `"cargo run --"`) consume multiple leading tokens
+- In command position: `<var:runok> check` matches `runok check`, `cargo run -- check`, etc.
+
 ### wrappers
 
 Patterns for commands that wrap other commands, enabling recursive rule evaluation:
@@ -178,6 +246,7 @@ definitions:
 
 - Each wrapper pattern **must** contain a `<cmd>` placeholder
 - When a command matches a wrapper, the inner command is extracted and evaluated recursively
+- `<cmd>` only matches token sequences whose first token is not a flag
 
 ### sandbox
 
@@ -188,32 +257,43 @@ definitions:
   sandbox:
     standard:
       fs:
-        writable: [.]
-        deny: [<path:secrets>]
+        read:
+          deny: [<path:secrets>]
+        write:
+          allow: [.]
+          deny: [.git, .runok, <path:secrets>]
       network:
         allow: true
     strict:
       fs:
-        writable: [./src]
-        deny: [<path:secrets>]
+        write:
+          allow: [./src]
+          deny: [<path:secrets>]
       network:
         allow: false
 ```
 
-- `fs.writable` - directories where writing is permitted
-- `fs.deny` - paths that cannot be accessed (supports `<path:name>` references)
-- `network.allow` - whether network access is permitted (default: `true`)
+- `fs.read.deny` - paths the sandboxed process cannot read (completely inaccessible)
+- `fs.write.allow` - directories where writing is permitted
+- `fs.write.deny` - paths that cannot be written to, even within writable directories (supports glob patterns and `<path:name>` references)
+- `network.allow` - whether network access is permitted (default: `true`). When `false`, TCP/UDP sockets are blocked (Unix domain sockets always permitted)
 - Sandbox presets are referenced by name in rule entries or `defaults.sandbox`
 - **Cannot** be used with `deny` rules
+- **Compound command merging**: Strictest Wins strategy (`write.allow` = intersection, `write.deny`/`read.deny` = union, `network.allow` = AND)
 
-### commands
-
-Additional command names for pattern matching:
+**Legacy format (deprecated)**: The previous `fs.writable`/`fs.deny` format is still accepted but deprecated and emits a warning. Migrate to the new `fs.read`/`fs.write` format:
 
 ```yaml
-definitions:
-  commands:
-    - mycustomtool
+# Deprecated
+fs:
+  writable: ['.']
+  deny: ['.git']
+
+# New format
+fs:
+  write:
+    allow: ['.']
+    deny: ['.git']
 ```
 
 ## Extends Management
@@ -233,6 +313,23 @@ The `extends` field inherits rules from external configurations:
 - Maximum extends depth: 10 levels
 - Circular references are detected and rejected
 
+### Official Presets (runok-presets)
+
+The official preset collection at `github:fohte/runok-presets` provides curated rules:
+
+```yaml
+extends:
+  - 'github:fohte/runok-presets/base@v1'
+```
+
+| Preset          | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| `base`          | Bundles all presets and adds `* --help` / `* --version` rules       |
+| `definitions`   | Wrapper definitions (`bash -c`, `sudo`, `xargs`, `find -exec`)      |
+| `readonly-unix` | Allow rules for read-only Unix commands (`cat`, `grep`, `ls`, etc.) |
+| `readonly-git`  | Allow rules for read-only Git subcommands                           |
+| `readonly-gh`   | Allow rules for read-only GitHub CLI subcommands                    |
+
 ### Version Pinning
 
 When the user adds a GitHub shorthand without a version (e.g., `github:org/presets`), recommend pinning:
@@ -247,16 +344,73 @@ extends:
   - github:example-org/presets@v1.0.0
 ```
 
+## CLI Commands
+
+### `runok init`
+
+Interactive setup wizard. Creates `runok.yml` and optionally migrates Claude Code Bash permissions to runok rules.
+
+- `--scope user|project` - configuration scope
+- `-y`, `--yes` - accept all defaults
+
+### `runok check`
+
+Evaluate a command against rules without executing it.
+
+```sh
+runok check [--verbose] [--output-format text|json] [--input-format claude-code-hook] -- <command>
+```
+
+- Reads from stdin if no command given (auto-detects JSON or plaintext)
+- Exit code `0` on success (regardless of decision), `2` on error
+
+### `runok exec`
+
+Evaluate and execute a command, optionally within a sandbox.
+
+```sh
+runok exec [--verbose] [--sandbox <preset>] -- <command>
+```
+
+- Exit code: command's own exit code on success, `1` on error, `3` on deny/ask
+
+### `runok test`
+
+Run test cases defined in configuration.
+
+```sh
+runok test [-c <path>]
+```
+
+- Supports inline per-rule `tests` and top-level `tests.cases`
+- Global config is excluded for reproducibility
+- Exit code `0` all passed, `1` failures, `2` error
+
+### `runok audit`
+
+View and filter audit log entries.
+
+```sh
+runok audit [--action allow|deny|ask] [--since <timespec>] [--until <timespec>] [--command <pattern>] [--dir <path>] [--limit <n>] [--json]
+```
+
+- Audit settings are configured only in global `runok.yml`
+
+### `runok update-presets`
+
+Force-update remote presets, bypassing TTL cache. Automatically upgrades version tags based on tag precision (`@v1` → latest major, `@v1.0` → latest minor within same major, `@v1.0.0` → latest stable within same major).
+
 ## Configuration Initialization
 
 When no runok configuration file exists:
 
 1. **Report** to the user that no config file was found
-2. **Ask** where they want to create it:
+2. **Recommend** using `runok init` for interactive setup with Claude Code migration support
+3. **If manual creation is preferred**, ask where to create it:
    - Global: `~/.config/runok/runok.yml` (applies to all projects)
    - Project: `./runok.yml` (project-specific)
-3. **If the target file already exists**, warn the user and ask for confirmation before overwriting
-4. **Generate initial configuration** with the following template:
+4. **If the target file already exists**, warn the user and ask for confirmation before overwriting
+5. **Generate initial configuration** with the following template:
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/fohte/runok/main/schema/runok.schema.json
@@ -266,7 +420,7 @@ rules: []
 
 **Important**: The first line must always be the `# yaml-language-server: $schema=...` comment. This enables schema validation in editors that support yaml-language-server. When editing an existing runok.yml or runok.yaml that lacks this comment, add it as the first line.
 
-5. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
+6. **Propose additional rules** based on the user's specific requirements - ask what commands they want to allow, deny, or require confirmation for, rather than generating a fixed template
 
 ## Investigating Unexpected Rule Matches
 
@@ -352,11 +506,12 @@ When a command is unexpectedly allowed, denied, or asked, follow this procedure 
 
 - **Unclosed quote**: Pattern has `"` or `'` without a matching close
 - **Empty alternation segment**: Pattern contains `|` with nothing on one side (e.g., `push|`)
-- **Invalid placeholder**: `<...>` content is not a recognized placeholder (`cmd`, `opts`, `vars`, `path:name`)
+- **Invalid placeholder**: `<...>` content is not a recognized placeholder (`cmd`, `opts`, `vars`, `path:name`, `var:name`)
 
 ### Definitions Errors
 
 - **Unresolved path reference**: A rule uses `<path:name>` but `definitions.paths` has no entry for `name`
+- **Unresolved variable reference**: A rule uses `<var:name>` but `definitions.vars` has no entry for `name`
 - **Missing `<cmd>` in wrapper**: A wrapper pattern in `definitions.wrappers` does not contain `<cmd>`
 - **Undefined sandbox preset**: A rule or `defaults.sandbox` references a preset not defined in `definitions.sandbox`
 - **Sandbox on deny rule**: A `deny` rule cannot have a `sandbox` field. Remove the `sandbox` field or change the action

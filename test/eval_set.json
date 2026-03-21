@@ -40,6 +40,14 @@
     "should_trigger": true
   },
   {
+    "query": "I want to write inline tests for my runok rules and run them with runok test. How do I set that up?",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me the runok audit log for denied commands from the last hour in this project directory.",
+    "should_trigger": true
+  },
+  {
     "query": "I want to integrate ESLint with Prettier. How should I modify .eslintrc.json?",
     "should_trigger": false
   },
