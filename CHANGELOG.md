@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.3...v0.1.4) (2026-03-21)
+
+
+### Features
+
+* **skill/runok:** update skill content for runok v0.2.0 ([#19](https://github.com/fohte/runok-claude-code-plugin/issues/19)) ([27cb53d](https://github.com/fohte/runok-claude-code-plugin/commit/27cb53dd5272d53682bc61d2ae854ba3f5df0ae1))
+
 ## [0.1.3](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.2...v0.1.3) (2026-03-18)
 
 
