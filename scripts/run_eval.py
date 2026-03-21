@@ -118,7 +118,8 @@ def run_single_query(
         # programmatic subprocess usage is safe.
         # Set CLAUDE_CODE_SIMPLE=1 to disable hooks, MCP servers, and
         # CLAUDE.md so the eval subprocess runs in a clean environment.
-        env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+        env = os.environ.copy()
+        env.pop("CLAUDECODE", None)
         env["CLAUDE_CODE_SIMPLE"] = "1"
 
         process = subprocess.Popen(
