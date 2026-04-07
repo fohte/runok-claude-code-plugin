@@ -2,8 +2,9 @@
 _commit: v0.5.3
 _src_path: https://github.com/fohte/generic-boilerplate
 auto_merge_release_pr: false
-description: Claude Code plugin for runok - command execution permission framework
-    for LLM agents
+description:
+  Claude Code plugin for runok - command execution permission framework
+  for LLM agents
 is_public: true
 project_name: runok-claude-code-plugin
 release_type: simple
