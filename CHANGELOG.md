@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.4...v0.1.5) (2026-07-02)
+
+
+### Dependencies
+
+* update dependency jdx/mise to v2026.6.11 ([#45](https://github.com/fohte/runok-claude-code-plugin/issues/45)) ([edcc2b0](https://github.com/fohte/runok-claude-code-plugin/commit/edcc2b0a9bdbba71c70a276564a883f59895bfa5))
+
 ## [0.1.4](https://github.com/fohte/runok-claude-code-plugin/compare/v0.1.3...v0.1.4) (2026-03-21)
 
 
