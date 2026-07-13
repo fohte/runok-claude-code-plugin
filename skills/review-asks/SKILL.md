@@ -27,16 +27,21 @@ The only exit condition is an **empty result** from:
 
 ```sh
 runok audit --action ask --recheck --json \
-  | jq 'select(.recheck.command_evaluations | any(.matched_rules == null))'
+  | jq 'select(
+      (.recheck.error != null) or
+      ((.recheck.command_evaluations // []) | any(.matched_rules == null))
+    )'
 ```
 
 This lists `ask` entries where at least one command branch matches no rule in
 the _current_ config -- i.e. it would still fall through to
-`defaults.action` today, regardless of what happened when it was originally
-recorded. See <https://runok.fohte.net/cli/audit/#--recheck> and
-<https://runok.fohte.net/cli/audit-log-schema/> for the full field reference
-(`recheck.action`, `recheck.command_evaluations[].matched_rules`, `approved`,
-etc.).
+`defaults.action` today -- plus entries where recheck itself failed
+(`.recheck.error` present instead of `.recheck.action` /
+`.recheck.command_evaluations`). The `// []` avoids a `jq` crash on those
+failure-shaped entries; the explicit `.recheck.error` branch keeps them in
+the queue instead of letting them silently vanish into a false "empty" while
+still unverified. See <https://runok.fohte.net/cli/audit/#--recheck> and
+<https://runok.fohte.net/cli/audit-log-schema/> for the full field reference.
 
 Every entry still appearing in this output must be assigned to exactly one
 of:
@@ -157,6 +162,17 @@ nothing. Treat nonexistent subcommands as a gap in runok's own
 auto-deny-unknown-subcommand capability (see step 3c) rather than something
 to hand-roll a rule for.
 
+**An entry with `.recheck.error` instead of a normal result isn't a
+disposition question yet.** It means recheck itself failed -- typically a
+config that failed to load at that entry's recorded cwd, or no cwd recorded
+at all. Writing a rule doesn't fix this. If a config load is genuinely
+broken, fix that first (a rule addition elsewhere won't make the query stop
+surfacing it). If the entry has no recorded cwd at all (common on older
+audit history), recheck can never succeed for it regardless of what rules
+exist -- tell the user this specific entry can't be recheck-verified and
+confirm whether to exclude it from this pass rather than looping on it
+forever.
+
 #### 3a. Split risk evaluation across sub-agents (required)
 
 **The main agent must never evaluate the full candidate set's risk profile
@@ -194,9 +210,9 @@ Each sub-agent prompt must be self-contained:
   file is the single source of truth; don't hardcode a stale copy into the
   prompt template)
 - The full "3c. Disposition rules" section below
-- Required output shape: `{disposition, pattern, rationale, risk_profile,
-suggested_tests, write_target}` per candidate, with `rationale` fully
-  filling every checklist item from `references/checklists.md`
+- Required output shape: `{disposition, pattern, rationale, write_target}`
+  per candidate, with `rationale` fully filling every checklist item from
+  `references/checklists.md`
 - An explicit instruction: "If you can't fill a checklist item with a
   concrete fact, the disposition is explicit-ask, not allow. Buzzwords like
   'read-only' or 'safe' or 'narrow' with no supporting fact are a
@@ -363,8 +379,10 @@ Before proposing any disposition, read `references/checklists.md`. It has:
   `allow` doesn't work, why `deny` doesn't work).
 - The **D1-D2 checklist** every `deny` proposal must fill (why `allow`
   doesn't work, why explicit-ask doesn't work).
+- The **W1-W2 checklist** every wrapper proposal must fill (not already
+  registered, write target).
 - The two-part **proposal table format** (summary table + per-candidate
-  checklist expansion) and a worked example of both.
+  checklist expansion) and a worked example of all four.
 
 Every checklist item must be filled with a **concrete, checkable fact** --
 an argument-structure enumeration, a confirmation command you actually ran,
@@ -467,11 +485,11 @@ converted to allow/deny/explicit-ask rules).
   and add the `# awaiting runok feature` comment.
 - Don't add an `allow` the user hasn't explicitly approved, even "while
   you're at it."
-- Don't propose `allow`/`deny` without filling every checklist item from
-  `references/checklists.md` (R1-R5 / Q1-Q2 / D1-D2) with a concrete fact.
-  A candidate you can't fill in gets downgraded to explicit-ask and **stays
-  in the table** -- dropping it from the table silently means the user
-  never learns it's still sitting in `ask` history.
+- Don't propose `allow`/`deny`/wrapper without filling every checklist item
+  from `references/checklists.md` (R1-R5 / Q1-Q2 / D1-D2 / W1-W2) with a
+  concrete fact. A candidate you can't fill in gets downgraded to
+  explicit-ask and **stays in the table** -- dropping it from the table
+  silently means the user never learns it's still sitting in `ask` history.
 - Don't route a wrapper-eligible command to explicit-ask -- register the
   wrapper so the inner command gets evaluated.
 - Don't write a broad `allow` without evaluating the command's actual

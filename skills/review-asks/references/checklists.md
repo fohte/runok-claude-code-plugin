@@ -70,6 +70,21 @@ fill Q1 or Q2 with an actual fact.
 If D2 can't be filled, downgrade to explicit-ask (leave room for the user's
 per-case judgment).
 
+## wrapper: W1-W2 checklist
+
+- **W1: not already registered** -- confirm no existing
+  `definitions.wrappers` entry, in this config or any `extends`-referenced
+  config, already matches the command. State how you checked (e.g. "grepped
+  `definitions.wrappers` in `runok.yml` and the extended preset; no
+  `bash -c <cmd>` entry present").
+- **W2: write target** -- state the layer chosen per step 3d and why
+  (universal, usable by anyone extending a shared preset -> that preset;
+  specific to this stack or workflow -> your own config).
+
+If W1 shows it's already registered, there's nothing to write for this
+candidate -- report it and move the inner command to the candidate list for
+its own R1-R5/Q1-Q2/D1-D2 evaluation instead.
+
 ## Proposal table format
 
 Two-part format: a summary table, then a checklist expansion block per
@@ -104,6 +119,12 @@ drift between the two).
   `https://github.com/x/y/pull/1`), or a flag (`--json fields`, `--web`).
   Subcommand position is fixed at `view`; `*` cannot reach it by the
   grammar.
+
+**#2** (W1-W2 evaluation)
+- W1 not registered: confirmed -- grepped `definitions.wrappers` in
+  `runok.yml` and the extended preset; no `bash -c <cmd>` entry present
+- W2 write target: global `runok.yml` -- used across every project on this
+  machine, not specific to one stack
 
 **#3** (Q1-Q2 evaluation)
 - Q1 allow fails: R1 fails -- `cargo run` builds and executes arbitrary
