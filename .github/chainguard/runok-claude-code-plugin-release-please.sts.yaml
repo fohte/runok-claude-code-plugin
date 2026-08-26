@@ -1,0 +1,7 @@
+issuer: https://token.actions.githubusercontent.com
+subject_pattern: ^repo:fohte@11088009/runok-claude-code-plugin@1170053073:ref:refs/heads/(main|master)$
+claim_pattern:
+  job_workflow_ref: ^fohte/runok-claude-code-plugin/\.github/workflows/release-please\.yml@[^@]+$
+permissions:
+  contents: write
+  pull_requests: write
